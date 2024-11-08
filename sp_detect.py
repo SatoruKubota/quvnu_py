@@ -60,7 +60,7 @@ for idx, frame_number in enumerate(correct_frame):
 
     # 出力動画のファイル名を設定
     #output_video_path = os.path.join(output_folder, f'output_{idx}.mp4')
-    output_video_path = os.path.join(output_folder, f'nuvqu_{idx}.mp4')
+    output_video_path = os.path.join(output_folder, f'quvnu_{idx}.mp4')
 
     # 動画の書き出し用オブジェクトを作成
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
