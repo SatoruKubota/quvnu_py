@@ -4,7 +4,7 @@ import numpy as np
 from shapely.geometry import Point, Polygon
 
 # CSVファイルを読み込み
-df = pd.read_csv('cac.csv')
+df = pd.read_csv('../quvnu_csv/cac.csv')
 
 # frameIndexの範囲を指定して抽出（例えば、frameIndexが3から6の範囲）
 start_frame = 0
@@ -23,6 +23,6 @@ print(df_filtered)
 
 # フィルタリング結果をCSVファイルに出力
 #output_path = f'{start_frame}_{end_frame}_coord.csv'
-output_path = f'quvnu_coord.csv'
+output_path = f'../quvnu_csv/quvnu_coord.csv'
 
 df_filtered.to_csv(output_path, index=False)

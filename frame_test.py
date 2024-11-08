@@ -6,7 +6,7 @@ import pandas as pd
 #df = pd.read_csv('cac_test.csv')
 #df = pd.read_csv('filtered_data.csv')
 #df = pd.read_csv('0_4999_coord.csv')
-df = pd.read_csv('quvnu_coord.csv')#テスト
+df = pd.read_csv('../quvnu_csv/quvnu_coord.csv')#テスト
 fps_correct = 1.998001998001998
 
 def show_frame(video_path, frame_numbers):
@@ -59,7 +59,7 @@ def show_frame(video_path, frame_numbers):
 # 使用例
 #video_path = 'CAC_tracking.mp4'
 frame_numbers = [2085, 2535, 8385, 10695, 19425, 22485, 23565, 30105, 33075, 36315, 36825, 39675, 42225, 45525]# 表示したいフレームリストを指定、CACの解析結果のフレーム
-video_path_ori = 'quvnu_ori.mp4'
+video_path_ori = '../quvnu_video/quvnu_ori.mp4'
 #show_frame(video_path, frame_number)
 
 show_frame(video_path_ori, frame_numbers)# 表示したいのは試合動画のフレームに合わせたもの

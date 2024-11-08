@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # CSVファイルを読み込む（ファイルパスを適宜変更してください）
-df = pd.read_csv('filtered_data.csv')
+df = pd.read_csv('../quvnu_csv/iltered_data.csv')
 
 
 # frameIndexの出現回数をカウント

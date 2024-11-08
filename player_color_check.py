@@ -8,7 +8,7 @@ start_time = time.time()
 
 
 # CSVファイルの読み込み
-df = pd.read_csv("quvnu_sp_frame.csv")
+df = pd.read_csv("../quvnu_csv/quvnu_sp_frame.csv")
 # 使用するcsvファイルの下準備、frameIndexの調整
 df_color = df
 fps_correct = 1.998001998001998 ############# 変更する必要あり ##########
@@ -16,7 +16,7 @@ df_color['frameIndex'] = df_color['frameIndex'] * fps_correct
 df_color['frameIndex'] = df_color['frameIndex'].astype(int)
 df_color['y'] = df_color['y'] - df_color['height']
 df_color['x'] = df_color['x'] - (df_color['width'] / 2)
-df_color.to_csv('sp_frame_coord_adjust.csv', index=False)
+df_color.to_csv('../quvnu_csv/sp_frame_coord_adjust.csv', index=False)
 
 # 動画ファイルのパス
 video_path = "quvnu_ori.mp4"
@@ -77,7 +77,7 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
 
 # 結果を保存
 df_color['color_flag'] = color_flags
-df_color.to_csv("sp_frame_with_color_flag.csv", index=False)
+df_color.to_csv("../quvnu_csv/sp_frame_with_color_flag.csv", index=False)
 print("処理完了")
 
 

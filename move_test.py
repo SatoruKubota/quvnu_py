@@ -17,12 +17,12 @@ warnings.filterwarnings(
 
 # CSVファイルを読み込み
 #df = pd.read_csv('cac.csv')#元データ
-df = pd.read_csv('quvnu_coord.csv')#テスト
+df = pd.read_csv('../quvnu_csv/quvnu_coord.csv')#テスト
 
 #df = pd.read_csv('0_4999_coord.csv')#0_5000
 #df = pd.read_csv('filtered_points.csv')#コート内
 #count_df = pd.read_csv('filtered_data.csv', header=0)#人数フィルタリング
-count_df = pd.read_csv('quvnu_data.csv', header=0)#人数フィルタリング
+count_df = pd.read_csv('../quvnu_csv/quvnu_data.csv', header=0)#人数フィルタリング
 
 
 

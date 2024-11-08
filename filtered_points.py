@@ -5,7 +5,7 @@ from shapely.geometry import Point, Polygon
 
 # CSVファイルを読み込み
 #df = pd.read_csv('0_4999_coord.csv')
-df = pd.read_csv('quvnu_coord.csv')
+df = pd.read_csv('../quvnu_csv/quvnu_coord.csv')
 #df = df.drop(0)
 
 # 列名を確認
@@ -30,7 +30,7 @@ df_filtered = df[df.apply(is_inside_polygon, axis=1, args=(polygon,))]
 
 # フィルタリング結果をCSVファイルに出力
 #output_path = 'filtered_points.csv'
-output_path = 'quvnu_points.csv'
+output_path = '../quvnu_csv/quvnu_points.csv'
 
 df_filtered.to_csv(output_path, index=False)
 

@@ -4,14 +4,14 @@ import pandas as pd
 import numpy as np
 
 # CSVファイルを読み込み
-df = pd.read_csv('quvnu_data.csv',header=0)#最初の行を列名として使用し、データは2行目から始まる
+df = pd.read_csv('../quvnu_csv/quvnu_data.csv',header=0)#最初の行を列名として使用し、データは2行目から始まる
 
 # 入力動画ファイルのパス
-input_video_path = 'quvnu_ori.mp4'  # ここに入力動画ファイルのパスを指定
-output_folder = 'quvnu_videos'  # 出力動画を保存するフォルダ
+input_video_path = '../quvnu_video/quvnu_ori.mp4'  # ここに入力動画ファイルのパスを指定
+output_folder = '../quvnu_video/quvnu_videos'  # 出力動画を保存するフォルダ
 
 #CAC解析時のfps情報
-cac_tracking_path = 'CAC_tracking.mp4'
+cac_tracking_path = '../quvnu_video/CAC_tracking.mp4'
 cac_cap = cv2.VideoCapture(cac_tracking_path)
 cac_fps = cac_cap.get(cv2.CAP_PROP_FPS)
 
@@ -100,6 +100,6 @@ for frameIndex in frame_list:#データフレーム抽出には補正前のframe
 sp_frame_df = df[df['frameIndex'].isin(frame_list)]
 
 # 結果をCSVファイルに出力
-output_path = 'quvnu_sp_frame.csv'
+output_path = '../quvnu_csv/quvnu_sp_frame.csv'
 sp_frame_df.to_csv(output_path, index=False)
 print(f'Filtered data saved to {output_path}')
