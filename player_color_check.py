@@ -19,7 +19,7 @@ df_color['x'] = df_color['x'] - (df_color['width'] / 2)
 df_color.to_csv('../quvnu_csv/sp_frame_coord_adjust.csv', index=False)
 
 # 動画ファイルのパス
-video_path = "quvnu_ori.mp4"
+video_path = "../quvnu_video/quvnu_ori.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # 青色の閾値 (HSV色空間)
