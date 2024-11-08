@@ -4,7 +4,7 @@ import numpy as np
 ######################## 画像準備 ##############################
 
 # 画像をロードし、色空間をRGBに変換します
-img = cv2.imread('frame100.jpg')
+img = cv2.imread('../quvnu_video/frame100.jpg')
 print("img size : " +str(img.shape))
 
 sample = img.copy()
@@ -83,7 +83,7 @@ print(point_list)
 
 ## 取得したポイントをcsvに保存
 if len(point_list) == point_num:
-    txt_path = "points.csv"
+    txt_path = "../quvnu_csv/points.csv"
     save_point_list(txt_path, point_list)
     print("Save txt file:", txt_path)
 
