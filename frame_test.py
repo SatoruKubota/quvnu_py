@@ -74,7 +74,7 @@ show_frame(video_path_ori, frame_numbers)# 表示したいのは試合動画の�
 """
 ################### 動画のパスと保存するフレーム番号 ##################
 frame_number = 5094  # 保存したいフレーム番号
-output_image_path = f'frame_{frame_number}.jpg'  # 保存する画像のパス
+output_image_path = f'../quvnu_video/frame_{frame_number}.jpg'  # 保存する画像のパス
 
 # 動画を読み込む
 cap = cv2.VideoCapture(video_path_ori)
