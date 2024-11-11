@@ -45,7 +45,7 @@ def show_frame(video_path, frame_numbers):
         for coord in coords:
             cv2.circle(frame, coord, 5, (0,255,0), 2)
         
-        cv2.imshow(f'Frame {frame_num}', frame)
+        cv2.imshow(f'Frame {int(frame_num*fps_correct)}', frame)
         
         # キーが押されるのを待つ
         if cv2.waitKey(0) & 0xFF == ord('q'):
@@ -56,23 +56,28 @@ def show_frame(video_path, frame_numbers):
     # キャプチャを解放
     cap.release()
 
+
 # 使用例
 #video_path = 'CAC_tracking.mp4'
-frame_numbers = [2085, 2535, 8385, 10695, 19425, 22485, 23565, 30105, 33075, 36315, 36825, 39675, 42225, 45525]# 表示したいフレームリストを指定、CACの解析結果のフレーム
+# 表示したいフレームリストを指定、CACの解析結果のフレーム(move_testの出力)
+frame_numbers = [2100, 2550, 8400, 10710, 19440, 22500, 23580, 30120, 33090, 36330, 36840, 39690, 42240, 45540]
 video_path_ori = '../quvnu_video/quvnu_ori.mp4'
 #show_frame(video_path, frame_number)
 
 show_frame(video_path_ori, frame_numbers)# 表示したいのは試合動画のフレームに合わせたもの
 
 #######################################################################
+
+
+
+
 """
-# 動画のパスと保存するフレーム番号
-video_path = 'quvnu_ori.mp4'  # 使用する動画のパス
-frame_number = 4255  # 保存したいフレーム番号
-output_image_path = 'frame_test.jpg'  # 保存する画像のパス
+################### 動画のパスと保存するフレーム番号 ##################
+frame_number = 5094  # 保存したいフレーム番号
+output_image_path = f'frame_{frame_number}.jpg'  # 保存する画像のパス
 
 # 動画を読み込む
-cap = cv2.VideoCapture(video_path)
+cap = cv2.VideoCapture(video_path_ori)
 
 # 動画が開けたか確認
 if not cap.isOpened():
@@ -94,5 +99,6 @@ else:
 
 # 動画のリソースを解放
 cap.release()
+
 
 """
