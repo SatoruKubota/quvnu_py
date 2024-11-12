@@ -24,7 +24,7 @@ print(M)
 ############## 鳥瞰画像の生成テスト ################
 
 # 元画像
-frame_5094 = cv2.imread("frame_5094.jpg")
+frame_5094 = cv2.imread("../quvnu_video/frame_5094.jpg")
 frame_5094 = cv2.cvtColor(frame_5094, cv2.COLOR_BGR2RGB)
 
 # 元画像を射影変換し鳥瞰画像へ
@@ -40,46 +40,43 @@ fig.add_subplot(3,1,3).imshow(frame_5094)
 plt.show()
 
 
-############# 仮想コート上の選手位置の推定 ##################
+############# 仮想コート上の攻撃選手位置の推定 ##################
 
 #使用するデータフレーム
 #df = pd.read_csv("5094.csv")
-df = pd.read_csv("..\quvnu_csv\sp_frame_flag.csv")
+df = pd.read_csv("..\quvnu_csv\sp_frame_flag_test.csv")
+
+# 攻撃選手のデータのみ残す
+# color_flag列が1の行のみを残す
+df = df.loc[df['color_flag'] == 1]
+"""
+df.to_csv("flag_check.csv", index=False)
+print("処理完了")
+"""
 
 # frameIndexごとにx, y座標をリストにまとめる
 grouped = df.groupby('frameIndex').apply(lambda g: list(zip(g['x'], g['y']))).reset_index()
 grouped.columns = ['frameIndex', 'coordinates']
 print(grouped)
+
 # 同じframeIndexの値をもつデータに対して、それぞれのx,y座標をまとめてリスト化
 pt = grouped['coordinates'].to_list() # 変換したい座標リスト
 print(f'pt is {type(pt)}')
 print(pt)
 
 
-
-"""
-# それぞれの座標をMで変換
-def apply_perspective_transform(coordinates, M):
-    # 座標リストを numpy 配列に変換 (N, 1, 2) の形にする
-    points = np.array(coordinates, dtype='float32').reshape(-1, 1, 2)
-    
-    # 変換行列 M を適用
-    transformed_points = cv2.perspectiveTransform(points, M)
-    
-    # 変換後の座標をリスト形式に変換して返す
-    transformed_coordinates = [(point[0][0], point[0][1]) for point in transformed_points]
-    
-    return transformed_coordinates
-
-transformed_coordinates = apply_perspective_transform(pt, M)
-print("変換後の座標:", transformed_coordinates)
-
-
-for (x, y) in transformed_coordinates:
-    cv2.circle(img3, (int(x), int(y)), radius=5, color=(255, 0, 0), thickness=-1)
-    """
-
+# 描画用イメージ
 img3 = field_template.copy()
+
+
+# 動画ファイルのパス
+video_path = "..\quvnu_video\quvnu_ori.mp4"
+# 保存先フォルダ
+output_folder = "..\quvnu_video\OF_mapped"
+# 動画を読み込む
+cap = cv2.VideoCapture(video_path)
+
+
 
 # 変換と描画を行う関数
 def transform_and_draw_coordinates(df, image, M):
@@ -97,9 +94,20 @@ def transform_and_draw_coordinates(df, image, M):
             x, y = point[0]
             # 描画位置の調整、負の座標は描画しない
             if x >= 0 and y >= 0:
-                cv2.circle(image, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
+                #cv2.circle(image, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
+                cv2.circle(image, (int(x), int(y)), radius=5, color=[163,83,21], thickness=-1)
+
         # 描画結果を表示
+        # フレーム位置を指定
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frameIndex)
+        ret, frame = cap.read()
+        if not ret:
+            print(f"Frame {frameIndex} could not be read.")
+        
         cv2.imshow(f'player posision:{frameIndex}', image)
+
+        # 1つのウィンドウで表示
+        cv2.imshow(f'frame {frameIndex}', frame)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
         image = field_template.copy()
