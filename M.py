@@ -44,7 +44,7 @@ plt.show()
 
 #使用するデータフレーム
 #df = pd.read_csv("5094.csv")
-df = pd.read_csv("..\quvnu_csv\sp_frame_flag_test.csv")
+df = pd.read_csv("..\quvnu_csv\sp_frame_flag.csv")
 
 # 攻撃選手のデータのみ残す
 # color_flag列が1の行のみを残す
@@ -58,6 +58,8 @@ print("処理完了")
 grouped = df.groupby('frameIndex').apply(lambda g: list(zip(g['x'], g['y']))).reset_index()
 grouped.columns = ['frameIndex', 'coordinates']
 print(grouped)
+#grouped.to_csv('grouped.csv', index=False)
+
 
 # 同じframeIndexの値をもつデータに対して、それぞれのx,y座標をまとめてリスト化
 pt = grouped['coordinates'].to_list() # 変換したい座標リスト
@@ -80,6 +82,10 @@ cap = cv2.VideoCapture(video_path)
 
 # 変換と描画を行う関数
 def transform_and_draw_coordinates(df, image, M):
+
+    # new_dfを空のデータフレームとして初期化
+    new_df = pd.DataFrame(columns=['frameIndex', 'coordinates'])
+
     for _, row in df.iterrows():
         coordinates = row['coordinates']
         frameIndex = row['frameIndex']
@@ -111,18 +117,35 @@ def transform_and_draw_coordinates(df, image, M):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
         image = field_template.copy()
+        # 新しい行をデータフレームに追加
+
 # 各 transformed_coordinates の (x, y) に対してマーカーを描画
 
 # 変換と描画を実行
 transform_and_draw_coordinates(grouped, img3, M)
 
 
+
+# coordinates 列に座標変換を適用
 """
-# 描画結果を表示
-cv2.imshow("Image with Markers", img3)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+def transform_coordinates(coords, M):
+    # 座標を numpy 配列に変換して適用
+    coords_np = np.array(coords, dtype=np.float32).reshape(-1, 1, 2)
+    transformed_coords = cv2.perspectiveTransform(coords_np, M)
+    # 元のリスト形式に戻す
+    return transformed_coords.reshape(-1, 2).astype(np.int32).tolist()
+
+# 新しい列 transformed_coordinates に座標変換を追加
+# new_dfを空のデータフレームとして初期化
+new_df = pd.DataFrame(columns=['frameIndex', 'transformed_coordinates'])
+new_df['frameIndex'] = grouped['frameIndex']
+new_df['transformed_coordinates'] = grouped['coordinates'].apply(lambda coords: transform_coordinates(coords, M))
+
+# CSVとして保存
+new_df.to_csv('new_dataframe.csv', index=False)
+
 """
+
 
 
 """
@@ -158,26 +181,5 @@ for _, row in df.iterrows():
 
 cap.release()
 cv2.destroyAllWindows()
-"""
-
-
-
-
-"""
-#################### test ###############
-
-# 座標を元画像に描画
-for coordinates_list in pt:
-    # coordinates_list から座標ペア (x, y) を取得
-    for coordinates in coordinates_list:
-        # (x, y) 座標を取得
-        x, y = coordinates
-        cv2.circle(frame_5094, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
-
-# 描画結果を表示
-cv2.imshow("Image with Points", frame_5094)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
 """
 
