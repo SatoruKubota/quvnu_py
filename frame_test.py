@@ -9,10 +9,13 @@ import pandas as pd
 df = pd.read_csv('../quvnu_csv/quvnu_coord.csv')#テスト
 fps_correct = 1.998001998001998
 
+
 def show_frame(video_path, frame_numbers):
     # 動画ファイルを読み込み
     cap = cv2.VideoCapture(video_path)
     
+    count = 0
+
     # 動画が正しく読み込めたか確認
     if not cap.isOpened():
         print("Error: 動画ファイルを開けませんでした")
@@ -20,7 +23,7 @@ def show_frame(video_path, frame_numbers):
     
 
     for frame_num in frame_numbers:
-
+        
         # 指定したフレームに移動
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num*fps_correct) # ビデオは試合動画のfpsに合わせる
         
@@ -45,8 +48,8 @@ def show_frame(video_path, frame_numbers):
         for coord in coords:
             cv2.circle(frame, coord, 5, (0,255,0), 2)
         
-        cv2.imshow(f'Frame {int(frame_num*fps_correct)}', frame)
-        
+        cv2.imshow(f'Number{count} Frame:{int(frame_num*fps_correct)}', frame)
+        count+=1
         # キーが押されるのを待つ
         if cv2.waitKey(0) & 0xFF == ord('q'):
             break        
@@ -60,7 +63,14 @@ def show_frame(video_path, frame_numbers):
 # 使用例
 #video_path = 'CAC_tracking.mp4'
 # 表示したいフレームリストを指定、CACの解析結果のフレーム(move_testの出力)
-frame_numbers = [2100, 2550, 8400, 10710, 19440, 22500, 23580, 30120, 33090, 36330, 36840, 39690, 42240, 45540]
+
+#frame_numbers = [2100, 2550, 8400, 10710, 19440, 22500, 23580, 30120, 33090, 36330, 36840, 39690, 42240, 45540]
+
+# テスト用(CKシーンのみ)
+frame_numbers = [2550, 8340, 10680, 19390, 23520, 36840]
+test_frame = [int(x * fps_correct) for x in frame_numbers]
+print(test_frame)
+
 video_path_ori = '../quvnu_video/quvnu_ori.mp4'
 #show_frame(video_path, frame_number)
 

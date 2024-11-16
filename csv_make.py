@@ -4,7 +4,7 @@ import numpy as np
 from shapely.geometry import Point, Polygon
 
 # CSVファイルを読み込み
-df = pd.read_csv('../quvnu_csv/cac.csv')
+df = pd.read_csv('../quvnu_csv/quvnu.csv')
 
 # frameIndexの範囲を指定して抽出（例えば、frameIndexが3から6の範囲）
 start_frame = 0
