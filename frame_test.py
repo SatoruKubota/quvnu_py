@@ -67,7 +67,8 @@ def show_frame(video_path, frame_numbers):
 #frame_numbers = [2100, 2550, 8400, 10710, 19440, 22500, 23580, 30120, 33090, 36330, 36840, 39690, 42240, 45540]
 
 # テスト用(CKシーンのみ)
-frame_numbers = [2550, 8340, 10680, 19390, 23520, 36840]
+"""frame_numbers = [2550, 8340, 10680, 19390, 23520, 36840]"""
+frame_numbers = [2550, 8440, 10710, 19440, 23580, 36840]
 test_frame = [int(x * fps_correct) for x in frame_numbers]
 print(test_frame)
 
