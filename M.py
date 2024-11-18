@@ -2,6 +2,7 @@ import cv2
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import ast
 
 ################# 変換行列を求める #############
 # 画像上の座標
@@ -49,6 +50,7 @@ df = pd.read_csv("..\quvnu_csv\sp_frame_flag.csv")
 # 攻撃選手のデータのみ残す
 # color_flag列が1の行のみを残す
 df = df.loc[df['color_flag'] == 1]
+
 """
 df.to_csv("flag_check.csv", index=False)
 print("処理完了")
@@ -79,12 +81,8 @@ output_folder = "..\quvnu_video\OF_mapped"
 cap = cv2.VideoCapture(video_path)
 
 
-
 # 変換と描画を行う関数
 def transform_and_draw_coordinates(df, image, M):
-
-    # new_dfを空のデータフレームとして初期化
-    new_df = pd.DataFrame(columns=['frameIndex', 'coordinates'])
 
     for _, row in df.iterrows():
         coordinates = row['coordinates']
@@ -127,7 +125,7 @@ transform_and_draw_coordinates(grouped, img3, M)
 
 
 # coordinates 列に座標変換を適用
-"""
+
 def transform_coordinates(coords, M):
     # 座標を numpy 配列に変換して適用
     coords_np = np.array(coords, dtype=np.float32).reshape(-1, 1, 2)
@@ -141,12 +139,33 @@ new_df = pd.DataFrame(columns=['frameIndex', 'transformed_coordinates'])
 new_df['frameIndex'] = grouped['frameIndex']
 new_df['transformed_coordinates'] = grouped['coordinates'].apply(lambda coords: transform_coordinates(coords, M))
 
+
+# 条件を満たす要素を削除する関数
+def filter_coordinates(coords):
+    return [(x, y) for x, y in coords if not (0 < x < 40 and 0 < y < 40)]
+
+# "coordinates"列を更新
+new_df["transformed_coordinates"] = new_df["transformed_coordinates"].apply(filter_coordinates)
+
+
 # CSVとして保存
-new_df.to_csv('new_dataframe.csv', index=False)
-
-"""
+new_df.to_csv('in_field_player.csv', index=False)
 
 
+# 座標を描画する関数
+def draw_coordinates_on_image(frame_index, coordinates):
+    # 画像コピーを作成
+    img_copy = field_template.copy()
+
+    # 座標の描画
+    for x, y in coordinates:
+        cv2.circle(img_copy, (x, y), radius=5, color=(0, 0, 255), thickness=-1)  # 赤い点を描画
+
+    # 画像にフレーム番号を表示
+    cv2.putText(img_copy, f"Frame: {frame_index}", (10, 30), 
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+    cv2.imshow(f"{frame_index}", img_copy)
 
 """
 
