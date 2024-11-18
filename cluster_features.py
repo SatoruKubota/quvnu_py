@@ -19,10 +19,7 @@ def calculate_features(points):
     angle1 = math.degrees(math.acos((b**2 + c**2 - a**2) / (2 * b * c)))  # ∠1
     angle2 = math.degrees(math.acos((a**2 + c**2 - b**2) / (2 * a * c)))  # ∠2
     angle3 = 180.0 - angle1 - angle2  # ∠3
-    
-    # 重心の計算
-    x_c = (x1 + x2 + x3) / 3
-    y_c = (y1 + y2 + y3) / 3
+
 
     # 特徴量ベクトルを返す
     return [angle1, angle2, angle3]
