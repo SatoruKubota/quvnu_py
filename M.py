@@ -149,7 +149,7 @@ new_df["transformed_coordinates"] = new_df["transformed_coordinates"].apply(filt
 
 
 # CSVとして保存
-new_df.to_csv('in_field_player.csv', index=False)
+new_df.to_csv('in_field_OF.csv', index=False)
 
 
 # 座標を描画する関数

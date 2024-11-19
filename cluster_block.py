@@ -16,7 +16,7 @@ y_boundaries_241_800 = [0, 200, 400]          # 横が241~800の範囲
 
 # 3. 入力データ
 coordinates_list = []
-in_field_df = pd.read_csv("in_field_player.csv")
+in_field_df = pd.read_csv("in_field_OF.csv")
 
 # 新しいデータフレームを作成
 new_df = pd.DataFrame(columns=["frameIndex", "transformed_coordinates"])
