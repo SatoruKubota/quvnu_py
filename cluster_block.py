@@ -1,60 +1,31 @@
 import numpy as np
-from collections import defaultdict
 import pandas as pd
-import ast
+from collections import defaultdict
+import ast  # 文字列をリストに変換するため
 
-# 画像の大きさ
+# データフレームの準備
+data = {
+    "frameIndex": [5094, 16663, 21338, 38741, 46993, 73606],
+    "transformed_coordinates": [
+        "[(175, 92), (385, 121), (25, 155)]",
+        "[(128, 159), (315, 251), (164, 230)]",
+        "[(171, 226), (144, 173), (336, 194)]",
+        "[(103, 140), (366, 143), (210, 120)]",
+        "[(180, 158), (168, 228), (342, 254)]",
+        "[(385, 99), (172, 90), (100, 133)]",
+    ],
+}
+
+df = pd.DataFrame(data)
+
+# 画像のサイズ
 img_width = 800
 img_height = 400
 
-# 横方向のブロックの境界（分割範囲）
+# ブロックの境界
 x_boundaries = [0, 100, 240, 800]
-
-# 縦方向のブロックの境界
-y_boundaries_0_240 = [0, 100, 200, 300, 400]  # 横が0~240の範囲
-y_boundaries_241_800 = [0, 200, 400]          # 横が241~800の範囲
-
-# 3. 入力データ
-coordinates_list = []
-in_field_df = pd.read_csv("in_field_OF.csv")
-
-# 新しいデータフレームを作成
-new_df = pd.DataFrame(columns=["frameIndex", "transformed_coordinates"])
-
-# 各行を処理
-for _, row in in_field_df.iterrows():
-    try:
-        # 文字列のリスト形式をリストに変換
-        coordinates = ast.literal_eval(row["transformed_coordinates"])
-
-        # y座標が小さい順に並べ替え
-        coordinates_sorted = sorted(coordinates, key=lambda x: x[1])  # x[1]はy座標
-
-        # 並べ替えた座標を新しい行として追加
-        new_row = {"frameIndex": row["frameIndex"], "transformed_coordinates": coordinates_sorted}
-        new_df = pd.concat([new_df, pd.DataFrame([new_row])], ignore_index=True)
-    except Exception as e:
-        print(f"Error processing row {row['frameIndex']}: {e}")
-
-# 結果を表示
-print(new_df)
-
-
-# データフレームをループして処理
-for _, row in new_df.iterrows():
-    try:
-        # 文字列のリスト形式をリストに変換
-        coordinates = row["transformed_coordinates"]
-        coordinates_list.append(coordinates)  # 変換したリストをcoordinates_listに追加
-        
-    except ValueError as e:
-        print(f"変換エラー: {e} (frameIndex: {row['frameIndex']})")
-        coordinates_list.append([])  # エラー時には空のリストを追加
-
-# 最後にcoordinates_listが作成される
-print(coordinates_list)
-
-
+y_boundaries_0_240 = [0, 100, 200, 300, 400]
+y_boundaries_241_800 = [0, 200, 400]
 
 # ブロックインデックスを計算する関数
 def find_block(x, y):
@@ -75,12 +46,16 @@ def find_block(x, y):
     
     return block_y, block_x
 
-# 各リストごとにブロックごとの人数をカウント
-for idx, person_coordinates in enumerate(coordinates_list):
-    block_counts = defaultdict(int)  # ブロックごとの人数を格納
-
+# 各フレームごとに処理
+for index, row in df.iterrows():
+    frame_index = row["frameIndex"]
+    # 座標リストを文字列からリストに変換
+    coordinates = ast.literal_eval(row["transformed_coordinates"])
+    
+    block_counts = defaultdict(int)
+    
     # 各座標についてブロックを特定してカウント
-    for x, y in person_coordinates:
+    for x, y in coordinates:
         try:
             block = find_block(x, y)
             block_counts[block] += 1
@@ -88,9 +63,29 @@ for idx, person_coordinates in enumerate(coordinates_list):
             print(f"座標 ({x}, {y}) が範囲外のためスキップします: {e}")
 
     # 出力
-    print(f"座標リスト {idx + 1} のブロックごとの人数:")
-    for (block_y, block_x), count in sorted(block_counts.items()):
-        # block_x をラベルに変換
+    #print(f"座標リスト {index + 1} のブロックごとの人数:")
+
+    # ブロックごとの人数をリスト化してソート
+    sorted_blocks = sorted(block_counts.items())
+
+    # パターンを判定（順番を無視してセットで比較）
+    pattern_1 = {((0, 0), 1), ((0, 2), 1), ((1, 0), 1)}
+    pattern_2 = {((0, 2), 1), ((1, 1), 1), ((2, 1), 1)}
+    pattern_22 = {((1, 2), 1), ((1, 1), 1), ((2, 1), 1)}
+
+    if set(sorted_blocks) == pattern_1:
+        print("パターンⅠ")
+    elif set(sorted_blocks) == pattern_2:
+        print("パターンⅡ")
+    elif set(sorted_blocks) == pattern_22:
+        print("パターンⅡ 逆サイド")
+    else:
+        print("その他")
+
+    # ブロックごとの人数を出力
+    print(f"座標リスト {index + 1} のブロックごとの人数:")
+
+    for (block_y, block_x), count in sorted_blocks:
         block_label = {0: "S", 1: "M", 2: "L"}.get(block_x, "範囲外")
-        print(f"  ブロック {block_label}{block_y}: {count} 人")
+        print(f"  {block_label}{block_y}: {count} 人")
     print()
