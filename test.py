@@ -71,16 +71,16 @@ for index, row in df.iterrows():
     # パターンを判定（順番を無視してセットで比較）
     pattern_1 = {((0, 0), 1), ((0, 2), 1), ((1, 0), 1)}
     pattern_2 = {((0, 2), 1), ((1, 1), 1), ((2, 1), 1)}
+    pattern_22 = {((1, 2), 1), ((1, 1), 1), ((2, 1), 1)}
 
-    # パターンを判定
-    if sorted_blocks == [((0, 1), 1), ((0, 2), 1), ((1, 0), 1)]:
-        print("判定：パターンⅠ")
-    elif sorted_blocks == [((0, 2), 1), ((1, 1), 1), ((2, 1), 1)]:
-        print("判定：パターンⅡ")
-    elif sorted_blocks == [((1, 2), 1), ((1, 1), 1), ((2, 1), 1)]:
-        print("判定：パターンⅡ")
+    if set(sorted_blocks) == pattern_1:
+        print("パターンⅠ")
+    elif set(sorted_blocks) == pattern_2:
+        print("パターンⅡ")
+    elif set(sorted_blocks) == pattern_22:
+        print("パターンⅡ 逆サイド")
     else:
-        print("判定：その他")
+        print("その他")
 
     # ブロックごとの人数を出力
     print(f"座標リスト {index + 1} のブロックごとの人数:")
