@@ -33,9 +33,9 @@ fps_correct = fps/cac_fps
 print(fps_correct)
 
 # 切り取る基準のフレーム番号のリスト
-#frame_list = [44790]  # 例: 基準となるフレーム番号のリスト
-frame_list = [2100, 2550, 8400, 10710, 19440, 22500, 23580, 30120, 33090, 36330, 36840, 39690, 42240, 45540]
-#correct_frame = [x * fps_correct for x in frame_list]
+frame_list = [2550, 8340, 10680, 19390, 23520, 36840] #テスト用
+#frame_list = [2100, 2550, 8400, 10710, 19440, 22500, 23580, 30120, 33090, 36330, 36840, 39690, 42240, 45540]
+
 correct_frame_float = [x * fps_correct for x in frame_list]
 correct_frame = [int(value) for value in correct_frame_float]
 

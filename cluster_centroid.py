@@ -1,30 +1,21 @@
 import numpy as np
-import math
 from random import sample
 import pandas as pd
 import ast
 
-# 1. 特徴量計算関数
-def calculate_features(points):
-    """3人の座標から形状特徴量（辺の長さと内角）を計算"""
-    # 座標を取り出す
-    (x1, y1), (x2, y2), (x3, y3) = points
-    
-    # 辺の長さ
-    a = math.sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)  # 辺a
-    b = math.sqrt((x1 - x3) ** 2 + (y1 - y3) ** 2)  # 辺b
-    c = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)  # 辺c
-    
-    # 内角を計算
-    angle1 = math.degrees(math.acos((b**2 + c**2 - a**2) / (2 * b * c)))  # ∠1
-    angle2 = math.degrees(math.acos((a**2 + c**2 - b**2) / (2 * a * c)))  # ∠2
-    angle3 = 180.0 - angle1 - angle2  # ∠3
+# 1. 重心の計算
+def calculate_centroid(points):
+    # 必要な座標数だけ取り出す（2つ、3つ、またはそれ以上）
+    x_c = np.mean([x for (x, y) in points])
+    y_c = np.mean([y for (x, y) in points])
+    return (x_c, y_c)
 
 
-    # 特徴量ベクトルを返す
-    return [angle1, angle2, angle3]
+# 2. 重心からの相対座標を計算
+def calculate_relative_coordinates(points, centroid):
+    return [(x - centroid[0], y - centroid[1]) for x, y in points]
 
-# 2. クラスタリング関数
+# 3. k-meansの手動実装
 def k_means_custom(features, k):
     """k-means のクラスタリングを手動で実装"""
     # 初期の重心をランダムに選択
@@ -36,8 +27,7 @@ def k_means_custom(features, k):
         
         # 各特徴量を最も近いクラスタに割り当て
         for feature in features:
-            distances = [np.linalg.norm(np.array(feature) - np.array(centroid)
-                                        ) for centroid in centroids]
+            distances = [np.linalg.norm(np.array(feature) - np.array(centroid)) for centroid in centroids]
             labels.append(np.argmin(distances))  # 最小距離のクラスタ番号
         
         # ラベルが変わらなければ終了
@@ -93,13 +83,18 @@ for _, row in new_df.iterrows():
 # 最後にcoordinates_listが作成される
 print(coordinates_list)
 
-# 4. 特徴量計算
-features = [calculate_features(points) for points in coordinates_list]
 
-# 5. クラスタリング（クラスタ数を3に設定）
-k = 2
-labels, centroids = k_means_custom(features, k)
+# 4. 各画像の相対座標を計算
+relative_coordinates_list = []
+for points in coordinates_list:
+    centroid = calculate_centroid(points)
+    relative_coordinates = calculate_relative_coordinates(points, centroid)
+    relative_coordinates_list.append(relative_coordinates)
+
+# 5. k-meansを使用してクラスタリング
+# 相対座標のリストを特徴量として渡す
+labels, centroids = k_means_custom(relative_coordinates_list, 3)
 
 # 結果を表示
-print("クラスタラベル:", labels)
-print("クラスタ重心:", centroids)
+print("クラスタリング結果:", labels)
+print("クラスタの重心:", centroids)
