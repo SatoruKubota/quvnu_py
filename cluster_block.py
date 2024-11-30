@@ -4,19 +4,7 @@ from collections import defaultdict
 import ast  # 文字列をリストに変換するため
 
 # データフレームの準備
-data = {
-    "frameIndex": [5094, 16663, 21338, 38741, 46993, 73606],
-    "transformed_coordinates": [
-        "[(175, 92), (385, 121), (25, 155)]",
-        "[(128, 159), (315, 251), (164, 230)]",
-        "[(171, 226), (144, 173), (336, 194)]",
-        "[(103, 140), (366, 143), (210, 120)]",
-        "[(180, 158), (168, 228), (342, 254)]",
-        "[(385, 99), (172, 90), (100, 133)]",
-    ],
-}
-
-df = pd.DataFrame(data)
+df = pd.read_csv('in_field_OF.csv')
 
 # 画像のサイズ
 img_width = 800
@@ -44,7 +32,7 @@ def find_block(x, y):
         raise ValueError(f"y座標が範囲外です: {y}")
     block_y = next(i for i in range(len(y_boundaries) - 1) if y_boundaries[i] <= y < y_boundaries[i + 1])
     
-    return block_y, block_x
+    return block_x, block_y
 
 # 各フレームごとに処理
 for index, row in df.iterrows():
@@ -69,9 +57,9 @@ for index, row in df.iterrows():
     sorted_blocks = sorted(block_counts.items())
 
     # パターンを判定（順番を無視してセットで比較）
-    pattern_1 = {((0, 0), 1), ((0, 2), 1), ((1, 0), 1)}
-    pattern_2 = {((0, 2), 1), ((1, 1), 1), ((2, 1), 1)}
-    pattern_22 = {((1, 2), 1), ((1, 1), 1), ((2, 1), 1)}
+    pattern_1 = {((0, 1), 1), ((1, 0), 1), ((2, 0), 1)}
+    pattern_2 = {((1, 1), 1), ((1, 2), 1), ((2, 0), 1)}
+    pattern_22 = {((1, 1), 1), ((1, 2), 1), ((2, 1), 1)}
 
     if set(sorted_blocks) == pattern_1:
         print("パターンⅠ")
@@ -85,7 +73,7 @@ for index, row in df.iterrows():
     # ブロックごとの人数を出力
     print(f"座標リスト {index + 1} のブロックごとの人数:")
 
-    for (block_y, block_x), count in sorted_blocks:
+    for (block_x, block_y), count in sorted_blocks:
         block_label = {0: "S", 1: "M", 2: "L"}.get(block_x, "範囲外")
         print(f"  {block_label}{block_y}: {count} 人")
     print()
