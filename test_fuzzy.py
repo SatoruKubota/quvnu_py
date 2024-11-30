@@ -77,3 +77,4 @@ for index, row in df.iterrows():
         print("その他")
 
     print()
+######
