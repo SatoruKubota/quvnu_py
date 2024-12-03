@@ -1,115 +1,204 @@
-import numpy as np
+import cv2
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import ast
-import itertools
 
-# ブロックの中心座標を定義
-blocks = {
-    (0, 0): (50, 50),
-    (0, 1): (50, 150),
-    (0, 2): (50, 250),
-    (0, 3): (50, 350),
-    (1, 0): (150, 50),
-    (1, 1): (150, 150),
-    (1, 2): (150, 250),
-    (1, 3): (150, 350),
-    (2, 0): (250, 50),
-    (2, 1): (250, 150),
-    (2, 2): (250, 250),
-    (2, 3): (250, 350),
-    (3, 0): (350, 50),
-    (3, 1): (350, 150),
-    (3, 2): (350, 250),
-    (3, 3): (350, 350),
-}
+################# 変換行列を求める #############
+# 画像上の座標
+original_points = [[913, 291], [1917, 453], [1514, 1068], [1, 484]]
+original_points = np.array(original_points, dtype=np.float32)
 
-# 距離に基づく確率を計算
-def calculate_block_probabilities(x, y, blocks, sigma=50):
-    probabilities = {}
-    for block, (center_x, center_y) in blocks.items():
-        distance = np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
-        probabilities[block] = np.exp(-distance ** 2 / (2 * sigma ** 2))
-    
-    # 正規化
-    total = sum(probabilities.values())
-    for block in probabilities:
-        probabilities[block] /= total
-    
-    # 上位4つを保持
-    top_4 = sorted(probabilities.items(), key=lambda item: item[1], reverse=True)[:4]
-    return top_4
+# 仮想コートの座標
+field_template = cv2.imread("../quvnu_video/field_template.jpg")
+height, width = field_template.shape[:2]
+corners = [[0, 0], [width/2, 0], [width/2, height], [0, height]]
+print(corners)
+corners = np.array(corners, dtype=np.float32)
 
-# パターンを定義
-pattern_1 = {(0, 1): 1.0, (1, 0): 1.0, (3, 1): 1.0}  # パターンⅠ
-pattern_2 = {(1, 1): 1.0, (1, 2): 1.0, (3, 1): 1.0}  # パターンⅡ
-pattern_3 = {(2, 0): 1.0, (2, 1): 1.0, (2, 2): 1.0}  # パターンⅢ
+# 変換行列の取得
+M = cv2.getPerspectiveTransform(original_points, corners)
+np.set_printoptions(precision=5, suppress=True)
+print(M)
 
-def check_pattern_combinations(all_probabilities, pattern):
-    """
-    指定されたパターンを作れるか確認し、確率の合計を返す
-    - all_probabilities: 各人の上位4つのブロック [(block, prob), ...] のリスト（3人分）
-    - pattern: 指定パターン {block: expected_prob}
-    """
-    # すべてのブロックの組み合わせを生成
-    combinations = itertools.product(*all_probabilities)
-    
-    best_combination_prob_sum = 0
-    for combination in combinations:
-        blocks_in_combination = {block for block, prob in combination}
-        if blocks_in_combination == set(pattern.keys()):
-            prob_sum = sum(prob for block, prob in combination if block in pattern)
-            best_combination_prob_sum = max(best_combination_prob_sum, prob_sum)
-    
-    return best_combination_prob_sum
 
-# データフレームを読み込み
-df = pd.read_csv('in_field_OF.csv')
+############## 鳥瞰画像の生成テスト ################
 
-# 各フレームごとに処理
-for index, row in df.iterrows():
-    frame_index = row["frameIndex"]
-    coordinates = ast.literal_eval(row["transformed_coordinates"])  # 座標をリストに変換
+# 元画像
+frame_5094 = cv2.imread("../quvnu_video/frame_5094.jpg")
+frame_5094 = cv2.cvtColor(frame_5094, cv2.COLOR_BGR2RGB)
 
-    print(f"フレーム {frame_index}:")
+# 元画像を射影変換し鳥瞰画像へ
+w2, h2 = corners.max(axis=0).astype(int) + 50 # 鳥瞰画像サイズを拡張（見た目の調整） 
+transformed_img = cv2.warpPerspective(frame_5094, M, (w2,h2) )
 
-    # 各人のブロック確率データを保持
-    all_probabilities = []
-    
-    for person_idx, (x, y) in enumerate(coordinates):
-        probabilities = calculate_block_probabilities(x, y, blocks)
-        all_probabilities.append(probabilities)
-        print(f"  人 {person_idx + 1} の上位4ブロック所属確率:")
-        for block, prob in probabilities:
-            print(f"    ブロック {block}: {prob:.2f}")
+# 結果表示 
+fig = plt.figure(figsize=(8,8))
+fig.add_subplot(3,1,1).imshow(field_template)
+fig.add_subplot(3,1,2).imshow(transformed_img)
+fig.add_subplot(3,1,3).imshow(frame_5094)
 
-    # パターンごとの確率合計を確認
-    prob_sum_1 = check_pattern_combinations(all_probabilities, pattern_1)
-    prob_sum_2 = check_pattern_combinations(all_probabilities, pattern_2)
-    prob_sum_3 = check_pattern_combinations(all_probabilities, pattern_3)
+plt.show()
 
-    # 確率値に対応するパターン名を定義
-    patterns = {
-    "Pattern 1": prob_sum_1,
-    "Pattern 2": prob_sum_2,
-    "Pattern 3": prob_sum_3,
-    }
-    # 最大値を持つパターンを取得
-    max_pattern = max(patterns, key=patterns.get)
-    max_value = patterns[max_pattern]
-    """
-    # 結果を出力
-    if prob_sum_1 == 0 and prob_sum_2 == 0:
-        print("  -> どちらのパターンも作成できません")
-    elif prob_sum_1 >= prob_sum_2:
-        print(f"  -> パターンⅠ が作成可能です (確率合計: {prob_sum_1:.2f})")
-    else:
-        print(f"  -> パターンⅡ が作成可能です (確率合計: {prob_sum_2:.2f})")
-    print()
-    """
-    # 結果を出力
-    if max_value >= 1.15:
-        # 結果を表示
-        print(f"{max_pattern} (値: {max_value})")
-    elif max_value < 1.15:
-        print(f"パターンを判別できません (値：{max_value})")
-    print()
+
+############# 仮想コート上の攻撃選手位置の推定 ##################
+
+#使用するデータフレーム
+#df = pd.read_csv("5094.csv")
+df = pd.read_csv("..\quvnu_csv\sp_frame_flag.csv")
+
+# 攻撃選手のデータのみ残す
+# color_flag列が1の行のみを残す
+df = df.loc[df['color_flag'] == 1]
+
+"""
+df.to_csv("flag_check.csv", index=False)
+print("処理完了")
+"""
+
+# frameIndexごとにx, y座標をリストにまとめる
+grouped = df.groupby('frameIndex').apply(lambda g: list(zip(g['x'], g['y']))).reset_index()
+grouped.columns = ['frameIndex', 'coordinates']
+print(grouped)
+grouped.to_csv('grouped.csv', index=False)
+
+
+# 同じframeIndexの値をもつデータに対して、それぞれのx,y座標をまとめてリスト化
+pt = grouped['coordinates'].to_list() # 変換したい座標リスト
+print(f'pt is {type(pt)}')
+print(pt)
+
+
+# 描画用イメージ
+img3 = field_template.copy()
+
+
+# 動画ファイルのパス
+video_path = "..\quvnu_video\quvnu_ori.mp4"
+# 保存先フォルダ
+output_folder = "..\quvnu_video\OF_mapped"
+# 動画を読み込む
+cap = cv2.VideoCapture(video_path)
+
+
+# 変換と描画を行う関数
+def transform_and_draw_coordinates(df, image, M):
+
+    for _, row in df.iterrows():
+        coordinates = row['coordinates']
+        frameIndex = row['frameIndex']
+        # 座標リストを (N, 1, 2) の形に整形し、float32に変換
+        points = np.array(coordinates, dtype='float32').reshape(-1, 1, 2)
+        
+        # 変換行列を適用
+        transformed_points = cv2.perspectiveTransform(points, M)
+
+        # 変換後の座標を描画
+        for point in transformed_points:
+            x, y = point[0]
+            # 描画位置の調整、負の座標は描画しない
+            if x >= 0 and y >= 0:
+                #cv2.circle(image, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
+                cv2.circle(image, (int(x), int(y)), radius=5, color=[163,83,21], thickness=-1)
+
+        # 描画結果を表示
+        # フレーム位置を指定
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frameIndex)
+        ret, frame = cap.read()
+        if not ret:
+            print(f"Frame {frameIndex} could not be read.")
+        
+        cv2.imshow(f'player posision:{frameIndex}', image)
+
+        # 1つのウィンドウで表示
+        cv2.imshow(f'frame {frameIndex}', frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        image = field_template.copy()
+        # 新しい行をデータフレームに追加
+
+# 各 transformed_coordinates の (x, y) に対してマーカーを描画
+
+# 変換と描画を実行
+transform_and_draw_coordinates(grouped, img3, M)
+
+
+
+# coordinates 列に座標変換を適用
+
+def transform_coordinates(coords, M):
+    # 座標を numpy 配列に変換して適用
+    coords_np = np.array(coords, dtype=np.float32).reshape(-1, 1, 2)
+    transformed_coords = cv2.perspectiveTransform(coords_np, M)
+    # 元のリスト形式に戻す
+    return transformed_coords.reshape(-1, 2).astype(np.int32).tolist()
+
+# 新しい列 transformed_coordinates に座標変換を追加
+# new_dfを空のデータフレームとして初期化
+new_df = pd.DataFrame(columns=['frameIndex', 'transformed_coordinates'])
+new_df['frameIndex'] = grouped['frameIndex']
+new_df['transformed_coordinates'] = grouped['coordinates'].apply(lambda coords: transform_coordinates(coords, M))
+
+
+# 条件を満たす要素を削除する関数
+def filter_coordinates(coords):
+    return [(x, y) for x, y in coords if not (0 < x < 40 and 0 < y < 40)]
+
+# "coordinates"列を更新
+new_df["transformed_coordinates"] = new_df["transformed_coordinates"].apply(filter_coordinates)
+
+
+# CSVとして保存
+new_df.to_csv('in_field_OF.csv', index=False)
+
+
+# 座標を描画する関数
+def draw_coordinates_on_image(frame_index, coordinates):
+    # 画像コピーを作成
+    img_copy = field_template.copy()
+
+    # 座標の描画
+    for x, y in coordinates:
+        cv2.circle(img_copy, (x, y), radius=5, color=(0, 0, 255), thickness=-1)  # 赤い点を描画
+
+    # 画像にフレーム番号を表示
+    cv2.putText(img_copy, f"Frame: {frame_index}", (10, 30), 
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+    cv2.imshow(f"{frame_index}", img_copy)
+
+"""
+
+# 動画ファイルのパス
+video_path = "..\quvnu_video\quvnu_ori.mp4"
+# 保存先フォルダ
+output_folder = "..\quvnu_video\OF_mapped"
+# 動画を読み込む
+cap = cv2.VideoCapture(video_path)
+
+# 各frameIndexに対応するフレームに座標を描画
+for _, row in df.iterrows():
+    frame_index = row['frameIndex']
+    coordinates = row['coordinates']
+
+    # フレーム位置を指定
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+    ret, frame = cap.read()
+
+    if not ret:
+        print(f"Frame {frame_index} could not be read.")
+        continue
+
+    # 座標を描画
+    for (x, y) in coordinates:
+        cv2.circle(field_template, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
+
+    # フレームを保存
+    output_path = f"../{output_folder}/frame_{frame_index}.jpg"
+    cv2.imwrite(output_path, frame)
+    print(f"Frame {frame_index} saved at {output_path}")
+
+cap.release()
+cv2.destroyAllWindows()
+"""
+
