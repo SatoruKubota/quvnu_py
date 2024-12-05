@@ -134,7 +134,8 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
 # 結果を保存
 df['frameIndex'] = (df['frameIndex'] * fps_correct).astype(int)
 df['color_flag'] = color_flags
-df.to_csv("../quvnu_csv/sp_frame_flag.csv", index=False)
+df.to_csv("sp_frame_flag.csv", index=False)
+#df.to_csv("../quvnu_csv/sp_frame_flag.csv", index=False)
 print("処理完了")
 
 
