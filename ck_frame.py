@@ -40,8 +40,8 @@ print(f"新しいCSVファイルが作成されました: {output_csv}")
 
 
 # frameIndexのリストを指定
-frame_indexes = [1740, 2130, 2580, 8370, 9510, 10710, 19410, 22530, 23580, 36360, 36840, 39780, 44820, 45540, 47130]
-
+#frame_indexes = [1740, 2130, 2580, 8370, 9510, 10710, 19410, 22530, 23580, 36360, 36840, 39780, 44820, 45540, 47130]
+frame_indexes = [1710, 2100, 2550, 6360, 7410, 8340, 9480, 10680, 16890, 19380, 22500, 23550, 33210, 36330, 36810, 39750, 41580, 42000, 42330, 44790, 45510, 47100]
 
 # 指定したframeIndexのcentroidを出力
 for frame_index in frame_indexes:
@@ -57,5 +57,11 @@ filtered_df = coord_data[coord_data['frameIndex'].isin(frame_indexes)][['frameIn
 # centroid列のx座標を条件にフィルタリング
 filtered_df = filtered_df[filtered_df["centroid"].apply(lambda c: c[0] <= 150)]
 
+# right_base 列を追加
+filtered_df["right_base"] = filtered_df["centroid"].apply(lambda c: 1 if c[1] < 200 else 0)
+
 # 必要であれば新しいCSVファイルとして保存
 filtered_df.to_csv('ck_frame.csv', index=False)
+
+column_as_list = filtered_df["frameIndex"].tolist()
+print(column_as_list)

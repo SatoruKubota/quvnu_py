@@ -10,7 +10,7 @@ window_index = 0
 click_count = 0
 
 # パターンごとのウィンドウ名
-window_names = ["pattern1", "pattern2", "pattern3"]  # 必要に応じて追加可能
+window_names = ["pattern1", "pattern2", "pattern3", "pattern4"]  # 必要に応じて追加可能
 
 # 一時的にクリックを保存するリスト（1パターン分）
 current_clicks = []

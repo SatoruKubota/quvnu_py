@@ -102,7 +102,7 @@ for i in range(len(movement_data)):
         if count >= 3:
             #print(f"一定値以下の値が3回以上続いた後、{value}が出現しました。続いた値: {consecutive_values}")
             #sp_values.append(consecutive_values[count-1])
-            sp_values.append(i*30)
+            sp_values.append((i-1)*30)
 
         # カウントと保存した値をリセット
         count = 0
