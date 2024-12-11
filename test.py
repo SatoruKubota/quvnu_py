@@ -1,93 +1,145 @@
+import concurrent.futures
+import cv2
 import pandas as pd
 import numpy as np
+import time
 
-# patterns: 各パターンの座標
-patterns = [
-    [(77, 132), (169, 89), (311, 106)],  # Pattern 1
-    [(136, 161), (143, 252), (308, 158)],  # Pattern 2
-    [(185, 92), (183, 167), (184, 253)]   # Pattern 3
-]
+start_time = time.time()
 
-# CSVファイルを読み込む
-df = pd.read_csv('in_field_OF.csv')
 
-# transformed_coordinates列を利用して座標データを取り出す
-def parse_coordinates(coords_str):
-    return eval(coords_str)  # 文字列をリストに変換
+# CSVファイルの読み込み
+df = pd.read_csv("../quvnu_csv/quvnu_sp_frame.csv")
+# 使用するcsvファイルの下準備、frameIndexの調整
+df_color = df.copy()
+fps_correct = 1.998001998001998 ############# 変更する必要あり ##########
+df_color['frameIndex'] = df_color['frameIndex'] * fps_correct
+df_color['frameIndex'] = df_color['frameIndex'].astype(int)
+df_color['y'] = df_color['y'] - df_color['height']
+df_color['x'] = df_color['x'] - (df_color['width'] / 2)
+#df_color.to_csv('../quvnu_csv/sp_frame_upper_left.csv', index=False)
+# sp_frame_coord_adjust.csvはboundingboxの上半分を切り取るため
 
-df['coords'] = df['transformed_coordinates'].apply(parse_coordinates)
+# 動画ファイルのパス
+video_path = "../quvnu_video/quvnu_ori.mp4"
+cap = cv2.VideoCapture(video_path)
 
-# 距離を計算し、その距離を基に確率を求める関数
-def calculate_probability_for_pattern(coords, pattern, sigma=100):
-    probabilities = []
-    
-    # 各座標がパターン内のどの座標に近いかを計算
-    for coord in coords:
-        prob_for_coord = []
-        for p in pattern:
-            # ユークリッド距離を計算
-            distance = np.linalg.norm(np.array(coord) - np.array(p))
-            # 距離に基づいて確率を計算（小さいほど高確率）
-            prob = np.exp(-distance ** 2 / (2 * sigma ** 2))
-            prob_for_coord.append(prob)
+
+################## クリック位置の色を取得 #####################
+# 画像ファイルのパスを指定
+image_path = "../quvnu_video/frame_5094.jpg"
+
+# 画像を読み込む
+image = cv2.imread(image_path)
+image = cv2.GaussianBlur(image, (15, 15), 0)
+
+# グローバル変数を使用して色を保持
+color_hsv = None
+
+
+# ウィンドウを先に作成する
+cv2.namedWindow("Image", cv2.WINDOW_AUTOSIZE)
+
+# マウスクリックイベント時に呼び出される関数
+def get_color_on_click(event, x, y, flags, param):
+    global color_hsv  # グローバル変数を使用することを宣言
+    if event == cv2.EVENT_LBUTTONDOWN:  # 左クリックが押されたとき
+        # クリックした位置の色 (BGR)
+        color_bgr = image[y, x]
+        # BGRからHSVに変換
+        color_hsv = cv2.cvtColor(np.uint8([[color_bgr]]), cv2.COLOR_BGR2HSV)[0][0]
+
+        # 色情報を表示
+        print(f"クリック位置: ({x}, {y}), 色 (HSV): {color_hsv}")
+
+# setMouseCallbackを呼び出してマウスイベントを設定する
+cv2.setMouseCallback("Image", get_color_on_click)
+
+# 画像を表示し、ユーザーが「q」を押すまで待機
+while True:
+    cv2.imshow("Image", image)  # 画像を表示
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# ウィンドウを閉じる
+cv2.destroyAllWindows()
+
+# グローバル変数に保存された色を使用
+print(f"最終的に取得した色: {color_hsv}")
+
+
+# HSV から BGR に変換
+color_bgr = cv2.cvtColor(np.uint8([[color_hsv]]), cv2.COLOR_HSV2BGR)[0][0]
+print(color_bgr)
+
+# 色を画像で表示
+color_checker = np.zeros((100, 100, 3), dtype=np.uint8)
+color_checker[:, :] = color_bgr
+
+cv2.imshow("Color", color_checker)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+######################## 閾値の設定 #########################
+# 青色の閾値 (HSV色空間)
+lower_bound = np.array([max(color_hsv[0]-10 , 0), max(color_hsv[1] - 40, 0), max(color_hsv[2] - 40, 0)])
+upper_bound = np.array([min(color_hsv[0]+10 , 179), min(color_hsv[1] + 40, 255), min(color_hsv[2] + 40, 255)])
+
+
+# 結果を保存するリスト
+color_flags = []
+
+# 各フレームに対して処理
+for index, row in df_color.iterrows():
+    frame_index = row['frameIndex']
+    person_id = row['personId']
+    x = int(row['x'])
+    y = int(row['y'])
+    width = int(row['width'])
+    height = int(row['height'])
+
+    # 動画の指定したフレームにシーク
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+    ret, frame = cap.read()
+    if not ret:
+        print(f"Frame {frame_index} not found.")
+        color_flags.append("エラー")  # エラー時のフラグ
+        continue
+    else:
+        # bounding_box上半分に青色があるか判定
+        upper_half_box = frame[y:y + height // 2, x:x + width]
+        upper_half_box = cv2.GaussianBlur(upper_half_box, (15, 15), 0)
+
+        # BGRからHSVに変換
+        hsv = cv2.cvtColor(upper_half_box, cv2.COLOR_BGR2HSV)
         
-        # 確率の正規化
-        total_prob = sum(prob_for_coord)
-        normalized_probs = [p / total_prob for p in prob_for_coord]
-        probabilities.append(normalized_probs)
-    
-    return probabilities
-
-def classify_pattern(coords, patterns):
-    prob_sums = []
-    all_probabilities = []
-    
-    for pattern in patterns:
-        prob = calculate_probability_for_pattern(coords, pattern)
+        # 青色範囲のマスクを作成
+        mask = cv2.inRange(hsv, lower_bound, upper_bound)
         
-        # インデックスの使用済みを追跡するためのセット
-        used_indices = set()
-        prob_sum = 0
+        # マスク内のピクセルをチェックし、青色が含まれているか確認
+        if np.sum(mask > 0) > 15:
+            color_flags.append(1)  # 青色あり
+            #print(1)
+        else:
+            color_flags.append(0)  # 青色なし
+            #print(0)
+cap.release()
 
-        # 各座標の確率リストから、未使用の最大値を選ぶ
-        for coord_probs in prob:
-            max_prob = 0
-            best_idx = -1  # 初期値として無効なインデックスを設定
-            for idx, p in enumerate(coord_probs):
-                if idx not in used_indices and p > max_prob:
-                    max_prob = p
-                    best_idx = idx  # 最大確率を持つインデックスを記録
-            if best_idx != -1:  # 有効なインデックスが見つかった場合のみ更新
-                prob_sum += max_prob
-                used_indices.add(best_idx)  # インデックスを使用済みに登録
 
-        
-        prob_sums.append(prob_sum)
-        all_probabilities.append(prob)  # 各座標の確率も保持
-    
-    # 最も確率が大きいパターンを選択
-    max_prob_sum_index = np.argmax(prob_sums)
-    return prob_sums, all_probabilities, max_prob_sum_index + 1
 
-# 結果を求める
-def display_classification_results(row):
-    coords = row['coords']  # 各行の座標
-    prob_sums, all_probabilities, pattern_number = classify_pattern(coords, patterns)
+"""
+# 並列処理でフレーム処理を実行
+with concurrent.futures.ThreadPoolExecutor() as executor:
+    color_flags = list(executor.map(process_frame, [row for _, row in df.iterrows()]))
+"""
 
-    # 確率合計をすべて表示（小数第二位まで）
-    for i, prob_sum in enumerate(prob_sums, 1):
-        print(f"パターン {i} の確率合計: {prob_sum:.2f}")
+# 結果を保存
+df['frameIndex'] = (df['frameIndex'] * fps_correct).astype(int)
+df['color_flag'] = color_flags
+df.to_csv("sp_frame_flag.csv", index=False)
+#df.to_csv("../quvnu_csv/sp_frame_flag.csv", index=False)
+print("処理完了")
 
-    # 最も確率が大きいパターンを表示
-    print(f"\n座標 {coords} はパターン {pattern_number} に分類されます。")
 
-    # 最も高い確率合計を持つパターンの詳細確率を表示（小数第二位まで）
-    selected_probabilities = all_probabilities[pattern_number - 1]  # 選ばれたパターンの詳細確率
-    print(f"\nパターン {pattern_number} の座標ごとの確率:")
-    for i, prob_for_coord in enumerate(selected_probabilities):
-        print(f"座標 {coords[i]} の確率: {', '.join([f'{prob:.2f}' for prob in prob_for_coord])}")
-
-# データフレームの各行に対して結果を表示
-for _, row in df.iterrows():
-    print(f"\nframeIndex {row['frameIndex']} の結果:")
-    display_classification_results(row)
+end_time = time.time()
+print(f"処理時間: {end_time - start_time}秒")
