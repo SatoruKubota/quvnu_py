@@ -9,7 +9,7 @@ patterns = [
 ]
 
 # CSVファイルを読み込む
-df = pd.read_csv('in_field_OF.csv')
+df = pd.read_csv('in_field_OF_best.csv')
 
 # transformed_coordinates列を利用して座標データを取り出す
 def parse_coordinates(coords_str):

@@ -8,7 +8,12 @@ start_time = time.time()
 
 
 # CSVファイルの読み込み
-df = pd.read_csv("../quvnu_csv/quvnu_sp_frame.csv")
+df = pd.read_csv("new_data2.csv")
+# 使用するframeの絞り込み
+frameIndex_list = [2100, 2550, 8340, 10680, 16890, 19380, 23550, 33210, 36810, 45510]
+# frameIndex列が指定リストの値と一致する行のみを抽出
+df = df[df['frameIndex'].isin(frameIndex_list)]
+
 # 使用するcsvファイルの下準備、frameIndexの調整
 df_color = df.copy()
 fps_correct = 1.998001998001998 ############# 変更する必要あり ##########

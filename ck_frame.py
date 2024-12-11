@@ -1,5 +1,6 @@
 import pandas as pd
 import ast
+import matplotlib.pyplot as plt
 
 # CSVファイルの読み込み
 input_csv = "new_data2.csv"  # 入力ファイル名を指定
@@ -59,9 +60,40 @@ filtered_df = filtered_df[filtered_df["centroid"].apply(lambda c: c[0] <= 150)]
 
 # right_base 列を追加
 filtered_df["right_base"] = filtered_df["centroid"].apply(lambda c: 1 if c[1] < 200 else 0)
+# coord列の座標を変換
+def transform_coords(coords, right_base_value):
+    #coords = eval(coords)  # 文字列をリストに変換
+    if right_base_value == 0:
+        # y座標を200を中心に反転
+        coords = [(x, 200 - (y - 200)) for x, y in coords]
+    return coords
 
-# 必要であれば新しいCSVファイルとして保存
+filtered_df["coord"] = filtered_df.apply(lambda row: transform_coords(
+    row["coord"], row["right_base"]), axis=1)
+
+# 各フレームごとに座標をプロット
+for _, row in filtered_df.iterrows():
+    frame_index = row["frameIndex"]
+    coords = row["coord"]
+
+    # x座標とy座標を分割
+    x_coords, y_coords = zip(*coords)
+
+    # プロット
+    plt.figure(figsize=(6, 6))
+    plt.scatter(x_coords, y_coords, color='blue', label='Coordinates')
+    plt.axhline(200, color='red', linestyle='--', label='y = 200')  # y=200の線を追加
+    plt.title(f"Frame {frame_index}")
+    plt.xlabel("X Coordinate")
+    plt.ylabel("Y Coordinate")
+    plt.legend()
+    plt.grid()
+    # y軸を反転
+    plt.gca().invert_yaxis()
+    plt.show()
+# CSVファイルとして保存
 filtered_df.to_csv('ck_frame.csv', index=False)
 
+# frameIndexの出力
 column_as_list = filtered_df["frameIndex"].tolist()
 print(column_as_list)
