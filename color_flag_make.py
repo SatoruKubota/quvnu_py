@@ -8,7 +8,12 @@ start_time = time.time()
 
 
 # CSVファイルの読み込み
-df = pd.read_csv("../quvnu_csv/quvnu_sp_frame.csv")
+df = pd.read_csv("new_data2.csv")
+# 使用するframeの絞り込み
+frameIndex_list = [2100, 2550, 8340, 10680, 16890, 19380, 23550, 33210, 36810, 45510]
+# frameIndex列が指定リストの値と一致する行のみを抽出
+df = df[df['frameIndex'].isin(frameIndex_list)]
+
 # 使用するcsvファイルの下準備、frameIndexの調整
 df_color = df.copy()
 fps_correct = 1.998001998001998 ############# 変更する必要あり ##########
@@ -30,6 +35,7 @@ image_path = "../quvnu_video/frame_5094.jpg"
 
 # 画像を読み込む
 image = cv2.imread(image_path)
+image = cv2.GaussianBlur(image, (15, 15), 0)
 
 # グローバル変数を使用して色を保持
 color_hsv = None
@@ -107,6 +113,7 @@ for index, row in df_color.iterrows():
     else:
         # bounding_box上半分に青色があるか判定
         upper_half_box = frame[y:y + height // 2, x:x + width]
+        upper_half_box = cv2.GaussianBlur(upper_half_box, (15, 15), 0)
 
         # BGRからHSVに変換
         hsv = cv2.cvtColor(upper_half_box, cv2.COLOR_BGR2HSV)
