@@ -93,11 +93,11 @@ upper_bound = np.array([min(color_hsv[0]+10 , 179), min(color_hsv[1] + 40, 255),
 
 # 結果を保存するリスト
 color_flags = []
+color_ratios = []
 
 # 各フレームに対して処理
 for index, row in df_color.iterrows():
     frame_index = row['frameIndex']
-    person_id = row['personId']
     x = int(row['x'])
     y = int(row['y'])
     width = int(row['width'])
@@ -113,13 +113,13 @@ for index, row in df_color.iterrows():
     else:
         # bounding_box上半分に青色があるか判定
         upper_half_box = frame[y:y + height // 2, x:x + width]
-        upper_half_box = cv2.GaussianBlur(upper_half_box, (15, 15), 0)
+        #upper_half_box = cv2.GaussianBlur(upper_half_box, (25, 25), 0)
 
         # BGRからHSVに変換
-        hsv = cv2.cvtColor(upper_half_box, cv2.COLOR_BGR2HSV)
+        upper_half_box_hsv = cv2.cvtColor(upper_half_box, cv2.COLOR_BGR2HSV)
         
         # 青色範囲のマスクを作成
-        mask = cv2.inRange(hsv, lower_bound, upper_bound)
+        mask = cv2.inRange(upper_half_box_hsv, lower_bound, upper_bound)
         
         # マスク内のピクセルをチェックし、青色が含まれているか確認
         if np.sum(mask > 0) > 15:
@@ -128,6 +128,15 @@ for index, row in df_color.iterrows():
         else:
             color_flags.append(0)  # 青色なし
             #print(0)
+        
+        # 範囲内のピクセル数と全ピクセル数
+        matching_pixels = np.count_nonzero(mask)
+        total_pixels = upper_half_box.size // 3  # RGBの3チャンネル分を除く
+
+        # 範囲内の割合を計算
+        percentage = (matching_pixels / total_pixels) * 100
+        color_ratios.append(percentage)  # percentage を color_ratios に記録
+
 cap.release()
 
 
@@ -141,6 +150,8 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
 # 結果を保存
 df['frameIndex'] = (df['frameIndex'] * fps_correct).astype(int)
 df['color_flag'] = color_flags
+df['color_ratio'] = color_ratios
+
 df.to_csv("sp_frame_flag.csv", index=False)
 #df.to_csv("../quvnu_csv/sp_frame_flag.csv", index=False)
 print("処理完了")
