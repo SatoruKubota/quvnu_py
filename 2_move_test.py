@@ -66,8 +66,8 @@ movement_data = []
 # 1行目のframeIndexの値を取得
 frame_index_value = int(df.iloc[1]['frameIndex'])
 
-for frame in range(frame_index_value, df['frameIndex'].max() - frame_window + 1, frame_window):
-#for frame in range(42000, 45000, frame_window):
+for frame in range(0, df['frameIndex'].max() - frame_window + 1, frame_window):
+#for frame in range(0, 9000, frame_window):
     window_data = df[(df['frameIndex'] >= frame) & (df['frameIndex'] < frame + frame_window)]
 
     if window_data.empty:
@@ -121,7 +121,7 @@ found_values = [value for value in sp_values if value in column_data]
 print(f"SP開始フレーム: {found_values}")
 
 # 結果を出力
-#print(f"sp候補: {sp_values}")
+print(f"sp候補: {sp_values}")
 
 #見つかった値: 
 #[2130, 2580, 8430, 10740, 19470, 22530, 23610, 30150, 33120, 36360, 36870, 39720, 42270, 45570]

@@ -2,20 +2,26 @@ import pandas as pd
 import numpy as np
 
 # patterns: 各パターンの座標
+"""
 patterns = [
     [(77, 132), (169, 89), (311, 106)],  # Pattern 1
     [(136, 161), (143, 252), (308, 158)],  # Pattern 2
     [(185, 92), (183, 167), (184, 253)]   # Pattern 3
 ]
+"""
+patterns = [[(72, 118), (197, 90), (333, 99)],
+ [(14, 135), (148, 89), (311, 95)],
+   [(139, 159), (145, 251), (301, 154)]]
 
 # CSVファイルを読み込む
-df = pd.read_csv('in_field_OF_best.csv')
+df = pd.read_csv('in_field_OF.csv')
 
 # transformed_coordinates列を利用して座標データを取り出す
 def parse_coordinates(coords_str):
     return eval(coords_str)  # 文字列をリストに変換
 
-df['coords'] = df['transformed_coordinates'].apply(parse_coordinates)
+#df['coords'] = df['transformed_coordinates'].apply(parse_coordinates)
+df['coords'] = df['coords'].apply(parse_coordinates)
 
 # 距離を計算し、その距離を基に確率を求める関数
 def calculate_probability_for_pattern(coords, pattern, sigma=100):
@@ -91,3 +97,5 @@ def display_classification_results(row):
 for _, row in df.iterrows():
     print(f"\nframeIndex {row['frameIndex']} の結果:")
     display_classification_results(row)
+
+

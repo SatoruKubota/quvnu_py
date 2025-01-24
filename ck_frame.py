@@ -71,6 +71,8 @@ def transform_coords(coords, right_base_value):
 filtered_df["coord"] = filtered_df.apply(lambda row: transform_coords(
     row["coord"], row["right_base"]), axis=1)
 
+
+
 # 各フレームごとに座標をプロット
 for _, row in filtered_df.iterrows():
     frame_index = row["frameIndex"]

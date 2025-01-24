@@ -6,7 +6,7 @@ import numpy as np
 ######################## 画像準備 ##############################
 
 # 画像をロードし、色空間をRGBに変換します
-img = cv2.imread('../quvnu_video/frame100.jpg')
+img = cv2.imread('../quvnu_video/frame_100.jpg')
 print("img size : " +str(img.shape))
 
 sample = img.copy()

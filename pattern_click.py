@@ -67,3 +67,4 @@ while True:
 
 # 最終的なクリック位置を表示
 print("Click positions by pattern:", pattern_clicks)
+

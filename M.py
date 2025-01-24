@@ -45,7 +45,7 @@ plt.show()
 
 #使用するデータフレーム
 #df = pd.read_csv("5094.csv")
-df = pd.read_csv("..\quvnu_csv\sp_frame_flag.csv")
+df = pd.read_csv("sp_frame_flag.csv")
 
 # 攻撃選手のデータのみ残す
 # color_flag列が1の行のみを残す

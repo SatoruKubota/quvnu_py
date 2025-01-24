@@ -45,8 +45,8 @@ def show_frame(video_path, frame_numbers):
 
         # x, y 座標をペアにしてリスト形式で取得
         coords = list(zip([int(x) for x in x_coords], [int(y) for y in y_coords]))
-        for coord in coords:
-            cv2.circle(frame, coord, 5, (0,255,0), 2)
+        #for coord in coords:
+            #cv2.circle(frame, coord, 5, (0,255,0), 2)
         
         cv2.imshow(f'Number{count} Frame:{int(frame_num*fps_correct)}', frame)
         count+=1
@@ -67,7 +67,7 @@ def show_frame(video_path, frame_numbers):
 #frame_numbers = [2100, 2550, 8400, 10710, 19440, 22500, 23580, 30120, 33090, 36330, 36840, 39690, 42240, 45540]
 
 # テスト用(CKシーンのみ)
-frame_numbers = [2100, 2550, 8340, 10680, 16890, 19380, 23550, 33210, 36810, 45510]
+frame_numbers = [2100, 2550, 10680, 19380, 23550, 36810]
 # frame_numbers = [2550, 8440, 10710, 19440, 23580, 36840]
 
 test_frame = [int(x * fps_correct) for x in frame_numbers]
